@@ -4,7 +4,9 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var glob = require('glob');
-
+var mysql = require('mysql');
+const config = require('./config');
+console.log(config)
 var app = express();
 
 // view engine setup
@@ -16,6 +18,32 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+
+
+var con = mysql.createConnection({
+  host: config.host,
+  user: config.user,
+  password: config.dbPassword,
+  database: config.database
+});
+
+con.connect(function(err) {
+  if (err) throw err;
+  console.log("Connected!");
+  con.query(`CREATE TABLE IF NOT EXISTS User (
+  		Id int NOT NULL AUTO_INCREMENT,
+  		Email VARCHAR(255) UNIQUE NOT NULL,
+  		Password VARCHAR(255) NOT NULL,
+  		Name VARCHAR(255) NOT NULL,
+  		PRIMARY KEY (id)
+  	);`, function (err, result) {
+    	if (err) throw err;
+    	console.log("Table created");
+  });
+});
+
+
+
 
 /* Configure routes */
 var routes = glob.sync('./routes/*.js');
